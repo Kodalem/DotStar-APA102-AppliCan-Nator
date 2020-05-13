@@ -20,6 +20,9 @@ StripLength = 300
 # The amperage of the power supply
 PowerCurrent = 10
 
+dividing_point = StripLength//3 #At what index the colours will be shifted
+
+
 
 # TODO: Refresh rate?
 
@@ -42,7 +45,7 @@ def CurrentCompensationF(StripLength, PowerCurrent):
 
 
 # LED STRIP SETUP
-led_strip = dotstar.DotStar(board.SCK, board.MOSI, StripLength,
+led_strip = dotstar.DotStar(board.SCK, board.MOSI, (StripLength + dividing_point),
                             brightness=CurrentCompensationF(StripLength, PowerCurrent))
 
 
@@ -52,10 +55,11 @@ led_strip = dotstar.DotStar(board.SCK, board.MOSI, StripLength,
 #            led_strip[led_strip_SMT] = (Red_Value, Green_Value, Blue_Value)
 
 x_rgb_base_conversion = 0
+point_value_rgb = 0
 def sine_wave_rgb():
-    sine_wave = 0
     global x_rgb_base_conversion
-    while sine_wave <= 2 * math.pi and sine_wave >= 0:
+    global point_value_rgb
+    while 312 == 312:
     #while True:
     # RGB Base Number 255 is divisor of amplitude of sine wave to get the maximum possible points of the x axis
     # Maybe could be increased to make more smooth wave in the LEDs?
@@ -71,11 +75,7 @@ def sine_wave_rgb():
     # As we shifted the values the units have to be shifted by dividing by 2.
     # Returns one unit less than 255 to prevent the Overflow of the 255 value.
     # Make a loop that does not overflow to software, full sine wave is 2*pi!
-        return int(point_value_rgb * ((255 - 1) / 2))
-    else:
-        #    #Hacky maybe, will it work? I do not know for the life of me...
-        #        sine_wave_rgb()
-        sine_wave = 0
+        return int(point_value_rgb * ((255 - 3) / 2))
 
 
 # To write randomization module
@@ -96,6 +96,7 @@ def random_function_picker():
         return list
 
 
+
 # Touples the colour values together
 def RGB_touple(Red_Value, Green_Value, Blue_Value):
     return (Red_Value, Green_Value, Blue_Value)
@@ -113,7 +114,7 @@ def LED_Strip_sine_wave_mono(  # to add
     while True:
         # To write and x^2/radial function which randomises the smooth hue in the wave form.
         while StripLength == led_strip_SMT:
-            set_colour = random.shuffle([0, 1, 0])
+            set_colour = random.shuffle([0, 1, 1-sine_wave])
             for led_strip_SMT in range(StripLength):
                 rgb = [j * sine_wave_rgb() for j in set_colour]
                 led_strip[led_strip_SMT] = (tuple(rgb))
@@ -128,7 +129,7 @@ def LED_sine_wave_duo(  # to add
     while True:
         # To write and x^2/radial function which randomises the smooth hue in the wave form.
         while StripLength == led_strip_SMT:
-            set_colour = random.shuffle([0, 1, 1])
+            set_colour = random.shuffle([0, 1, 1 - float(point_value_rgb)])
             for led_strip_SMT in range(StripLength):
                 rgb = [j * sine_wave_rgb() for j in set_colour]
                 led_strip[led_strip_SMT] = (tuple(rgb))
@@ -141,14 +142,33 @@ def LED_mayhem(  # to add all the defined functions picked by random colours at 
     led_strip_SMT2 = len(led_strip)
     while True:
         # To write and x^2/radial function which randomises the smooth hue in the wave form.
-        while StripLength == led_strip_SMT1:
+        while (StripLength + dividing_point) == led_strip_SMT1:
             set_colour  = random_function_picker()
             set_colour2 = random_function_picker()
             for led_strip_SMT1 in range(StripLength):
-                rgb1 = [j * sine_wave_rgb() for j in set_colour]
-                rgb2 = [j * sine_wave_rgb() for j in set_colour2]
+                rgb1 = ([int(j * sine_wave_rgb()) for j in set_colour])
+                rgb2 = ([int(j * sine_wave_rgb()) for j in set_colour2])
                 led_strip[led_strip_SMT1] = (tuple(rgb1))
-                led_strip[led_strip_SMT1-(StripLength//11)] = (tuple(rgb2))
+                led_strip[led_strip_SMT1-(dividing_point)] = (tuple(rgb2))
         LED_mayhem()
+        
+def LED_mayhem1(  # to add all the defined functions picked by random colours at the same time and random functions,
+        # Maybe be cancerous to look at... <.<
+):
+    led_strip_SMT1 = len(led_strip)
+    led_strip_SMT2 = len(led_strip)
+    while True:
+        # To write and x^2/radial function which randomises the smooth hue in the wave form.
+        while (StripLength + dividing_point) == led_strip_SMT1:
+            set_colour  = [0.1, 0, 1]
+            set_colour1 = [1, 0, 1]
+            set_colour2 = [1, 1, 1]
+            for led_strip_SMT1 in range(StripLength):
+                rgb0 = ([int(j * 255) for j in set_colour])
+                rgb1 = ([int(j * 255) for j in set_colour1])
+                rgb2 = ([int(j * 255) for j in set_colour2])
+                led_strip[led_strip_SMT1] = (tuple(rgb1))
+                led_strip[led_strip_SMT1-(dividing_point)] = (tuple(rgb2))
+                led_strip[led_strip_SMT1-((dividing_point)*3)] = (tuple(rgb2))
+        LED_mayhem1()
                 
-LED_mayhem()
